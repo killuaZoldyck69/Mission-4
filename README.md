@@ -27,7 +27,7 @@ The whole system is built around three main tables that talk to each other:
 
 ![ER Diagram](ERD.png)
 
-**🔗 [View Interactive ERD on DrawSQL](your-drawsql-share-link-here)**
+**🔗 [View Interactive ERD on DrawSQL](https://drawsql.app/teams/nahid-hasan-3/diagrams/vehicle-rental-system)**
 
 ---
 
@@ -44,32 +44,34 @@ This is where all our users live – whether they're customers looking to rent o
 | `name`     | VARCHAR | NOT NULL             | Their full name                           |
 | `email`    | VARCHAR | **UNIQUE**, NOT NULL | Login email (no duplicates allowed!)      |
 | `password` | TEXT    | NOT NULL             | Encrypted password for security           |
-| `phone`    | VARCHAR | -                    | Contact number (optional)                 |
+| `phone`    | VARCHAR | NOT NULL             | Contact number (optional)                 |
 
 ### 2. Vehicles Table
 
 Our garage! This holds everything we know about each vehicle in our fleet.
 
-| Column          | Type    | Constraints                          | What It Does                      |
-| :-------------- | :------ | :----------------------------------- | :-------------------------------- |
-| `vehicle_id`    | SERIAL  | **Primary Key**                      | Unique ID for each vehicle        |
-| `type`          | ENUM    | 'car', 'bike', 'truck'               | What kind of vehicle it is        |
-| `reg_number`    | VARCHAR | **UNIQUE**, NOT NULL                 | License plate (no duplicates)     |
-| `status`        | ENUM    | 'available', 'rented', 'maintenance' | Current availability              |
-| `price_per_day` | DECIMAL | NOT NULL                             | How much it costs to rent per day |
+| Column                | Type    | Constraints                          | What It Does                      |
+| :-------------------- | :------ | :----------------------------------- | :-------------------------------- |
+| `vehicle_id`          | SERIAL  | **Primary Key**                      | Unique ID for each vehicle        |
+| `type`                | ENUM    | 'car', 'bike', 'truck'               | What kind of vehicle it is        |
+| `model`               | ENUM    | NOT NULL                             | What model of vehicle it is       |
+| `registration_number` | VARCHAR | **UNIQUE**, NOT NULL                 | License plate (no duplicates)     |
+| `rental_price`        | DECIMAL | NOT NULL                             | How much it costs to rent per day |
+| `status`              | ENUM    | 'available', 'rented', 'maintenance' | Current availability              |
 
 ### 3. Bookings Table
 
 This is where the magic happens – connecting users with vehicles for specific time periods.
 
-| Column       | Type   | Constraints                         | What It Does                          |
-| :----------- | :----- | :---------------------------------- | :------------------------------------ |
-| `booking_id` | SERIAL | **Primary Key**                     | Unique ID for each booking            |
-| `user_id`    | INT    | **Foreign Key**                     | Links to the Users table              |
-| `vehicle_id` | INT    | **Foreign Key**                     | Links to the Vehicles table           |
-| `start_date` | DATE   | NOT NULL                            | When the rental begins                |
-| `end_date`   | DATE   | **CHECK (> start_date)**            | When it ends (must be after start!)   |
-| `status`     | ENUM   | 'pending', 'confirmed', 'completed' | Where the booking is in its lifecycle |
+| Column       | Type    | Constraints                                      | What It Does                             |
+| :----------- | :------ | :----------------------------------------------- | :--------------------------------------- |
+| `booking_id` | SERIAL  | **Primary Key**                                  | Unique ID for each booking               |
+| `user_id`    | INT     | **Foreign Key**                                  | Links to the Users table                 |
+| `vehicle_id` | INT     | **Foreign Key**                                  | Links to the Vehicles table              |
+| `start_date` | DATE    | NOT NULL                                         | When the rental begins                   |
+| `end_date`   | DATE    | **CHECK (> start_date)**                         | When it ends (must be after start!)      |
+| `status`     | ENUM    | 'pending', 'confirmed', 'completed', 'cancelled' | Where the booking is in its lifecycle    |
+| `total_cost` | DECIMAL | NOT NULL                                         | How much the total costs to this booking |
 
 ---
 
@@ -82,71 +84,6 @@ I didn't just throw tables together – there's actual business logic baked in:
 2.  **Date Validation:** There's a CHECK constraint that makes sure your rental end date comes after your start date. Because yeah, time travel isn't a thing yet.
 
 3.  **Data Integrity:** Foreign keys mean you can't create a booking for a user or vehicle that doesn't exist. And unique constraints on emails and registration numbers prevent duplicates.
-
----
-
-## 📝 The SQL Queries That Actually Do Stuff
-
-I wrote several queries to answer real business questions. Here's what they do:
-
-### Query 1: JOIN
-
-**Retrieve booking information along with customer name and vehicle name.**
-
-This pulls together booking info with customer names and vehicle details – super useful for reports.
-
-**Concepts used:** INNER JOIN
-
-```sql
-SELECT b.booking_id, u.name AS customer_name, v.name AS vehicle_name
-FROM Bookings b
-INNER JOIN Users u ON b.user_id = u.user_id
-INNER JOIN Vehicles v ON b.vehicle_id = v.vehicle_id;
-```
-
-### Query 2: EXISTS
-
-**Find all vehicles that have never been booked.**
-
-Identifies vehicles that have never been booked. Might be time to check if something's wrong with them!
-
-**Concepts used:** NOT EXISTS
-
-```sql
-SELECT * FROM Vehicles v
-WHERE NOT EXISTS (
-    SELECT 1 FROM Bookings b WHERE b.vehicle_id = v.vehicle_id
-);
-```
-
-### Query 3: WHERE
-
-**Retrieve all available vehicles of a specific type (e.g., cars).**
-
-Want to see what cars are ready to rent right now? This query's got you covered.
-
-**Concepts used:** SELECT, WHERE
-
-```sql
-SELECT * FROM Vehicles
-WHERE type = 'car' AND status = 'available';
-```
-
-### Query 4: GROUP BY and HAVING
-
-**Find the total number of bookings for each vehicle and display only those vehicles that have more than 2 bookings.**
-
-Shows which vehicles are the crowd favorites – booked more than twice.
-
-**Concepts used:** GROUP BY, HAVING, COUNT
-
-```sql
-SELECT v.name, COUNT(b.booking_id) AS total_bookings
-FROM Vehicles v
-INNER JOIN Bookings b ON v.vehicle_id = b.vehicle_id
-GROUP BY v.vehicle_id, v.name
-HAVING COUNT(b.booking_id) > 2;
-```
 
 ---
 
