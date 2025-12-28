@@ -219,15 +219,4 @@ Here's how to get it up and running:
 
 ---
 
-## 💡 Pro Tip for Submission
-
-If you're turning this in (whether on GitHub or as a ZIP file), organize your SQL code into two clean files:
-
-1.  `schema.sql` – All your CREATE TABLE statements
-2.  `queries.sql` – The 4 business query solutions
-
-Trust me, instructors love when things are well-organized. It shows you care about your work!
-
----
-
 **Built with ☕ and a lot of SQL debugging**
