@@ -87,6 +87,127 @@ I didn't just throw tables together – there's actual business logic baked in:
 
 ---
 
+## 📝 SQL Queries Explained
+
+I wrote four essential queries to demonstrate different SQL concepts and solve real business problems. Here's a detailed breakdown:
+
+### Query 1: JOIN
+
+**Retrieve booking information along with customer name and vehicle name.**
+
+This query combines data from three tables to give us a complete picture of each booking. It shows who booked what vehicle and when.
+
+**Concepts used:** INNER JOIN, SELECT
+
+**What it does:** Pulls together booking details with the actual customer and vehicle names instead of just showing IDs. Super useful for generating reports or displaying booking history to users.
+
+```sql
+-- Query 1: Get complete booking details with customer and vehicle names
+SELECT
+  b.booking_id,
+  u.name AS customer_name,
+  v.name AS vehicle_name,
+  b.start_date,
+  b.end_date,
+  b.status
+FROM
+  bookings b
+  INNER JOIN users u ON b.user_id = u.user_id
+  INNER JOIN vehicles v ON v.vehicle_id = b.vehicle_id;
+```
+
+**Why it matters:** Without joins, we'd only see user_id and vehicle_id numbers, which aren't helpful for humans reading the data.
+
+---
+
+### Query 2: NOT EXISTS
+
+**Find all vehicles that have never been booked.**
+
+This identifies vehicles sitting in our inventory that customers haven't rented yet. Could indicate unpopular vehicles or new additions to the fleet.
+
+**Concepts used:** NOT EXISTS, Subquery
+
+**What it does:** Checks each vehicle to see if there's any booking record for it. If no booking exists, it shows up in the results.
+
+```sql
+-- Query 2: Find vehicles with zero bookings
+SELECT
+  *
+FROM
+  vehicles v
+WHERE
+  NOT EXISTS (
+    SELECT
+      1
+    FROM
+      bookings b
+    WHERE
+      b.vehicle_id = v.vehicle_id
+  );
+```
+
+**Why it matters:** Helps management identify underperforming inventory or spot data entry issues (like forgetting to add a vehicle to the booking system).
+
+---
+
+### Query 3: WHERE
+
+**Retrieve all available vehicles of a specific type (e.g., cars).**
+
+This is your basic search filter – the kind of query that runs when a customer visits the website and says "show me available cars."
+
+**Concepts used:** SELECT, WHERE, AND operator
+
+**What it does:** Filters the entire vehicle inventory to show only cars that are currently available for rent (not already rented out or in maintenance).
+
+```sql
+-- Query 3: Show only available cars
+SELECT
+  *
+FROM
+  vehicles
+WHERE
+  type = 'car'
+  AND status = 'available';
+```
+
+**Why it matters:** This is the foundation of any rental platform's search functionality. Customers shouldn't see vehicles that aren't actually rentable!
+
+---
+
+### Query 4: GROUP BY and HAVING
+
+**Find the total number of bookings for each vehicle and display only those vehicles that have more than 2 bookings.**
+
+This analytics query identifies our most popular vehicles – the ones customers keep coming back for.
+
+**Concepts used:** GROUP BY, HAVING, COUNT, Aggregate Functions
+
+**What it does:** Groups all bookings by vehicle, counts how many times each vehicle has been booked, then filters to show only vehicles with more than 2 bookings.
+
+```sql
+-- Query 4: Find frequently booked vehicles (popular inventory)
+SELECT
+  v.name AS vehicle_name,
+  COUNT(*) AS total_bookings
+FROM
+  bookings b
+  JOIN vehicles v ON v.vehicle_id = b.vehicle_id
+GROUP BY
+  v.vehicle_id
+HAVING
+  COUNT(*) > 2;
+```
+
+**Why it matters:** Business intelligence! Knowing which vehicles are popular helps with inventory decisions – maybe we should buy more vehicles like these, or price them higher during peak seasons.
+
+---
+
+## 👨🏻‍💻 Viva Video Link
+
+**https://drive.google.com/drive/folders/18MqbLvEiESO8vQOzPVVI1dIGVw7aO3gh?usp=sharing**
+
 ## 🚀 Want to Run This Yourself?
 
 Here's how to get it up and running:
